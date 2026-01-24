@@ -1,8 +1,15 @@
-import { motion } from 'framer-motion';
+import { useRef, useState } from 'react';
 import { 
-  Folder, Terminal, Globe, Code2, Trash2, 
+  motion, 
+  useMotionValue, 
+  useSpring, 
+  useTransform, 
+  AnimatePresence 
+} from 'framer-motion';
+import { 
+  Folder, Terminal, Globe, Trash2, 
   Github, Linkedin, FileText, 
-  Gamepad2, Grid3X3 
+  Gamepad2, Grid3X3, ContactRound 
 } from 'lucide-react';
 import { useWindows, AppId } from '@/contexts/WindowContext';
 
@@ -20,15 +27,17 @@ const dockApps: DockItem[] = [
   { id: 'finder', icon: Folder, label: 'Files', color: 'bg-blue-500/90' },
   { id: 'terminal', icon: Terminal, label: 'Terminal', color: 'bg-gray-800/90' },
   
-  // --- Arcade Games (New) ---
+  // --- Arcade Games ---
   { id: 'snake', icon: Gamepad2, label: 'Snake', color: 'bg-green-600/90' },
   { id: 'tetris', icon: Grid3X3, label: 'Tetris', color: 'bg-cyan-600/90' },
 
-  // --- Dev Tools ---
-  { id: 'vscode', icon: Code2, label: 'Code', color: 'bg-sky-700/90' },
+  // --- Browser ---
   { id: 'safari', icon: Globe, label: 'Browser', color: 'bg-indigo-500/90' },
 
-  // --- External Links (Portfolio Essentials) ---
+  // --- NEW: Contact App ---
+  { id: 'contact', icon: ContactRound, label: 'Contact', color: 'bg-pink-600/90' },
+
+  // --- External Links ---
   { 
     id: 'github', 
     icon: Github, 
@@ -56,7 +65,8 @@ const dockApps: DockItem[] = [
 ];
 
 const Dock = () => {
-  const { windows, openApp, minimizeApp } = useWindows();
+  const { windows, openApp, minimizeApp, closeApp } = useWindows();
+  const mouseX = useMotionValue(Infinity);
 
   const handleDockClick = (item: DockItem) => {
     // Handle External Links
@@ -66,7 +76,6 @@ const Dock = () => {
     }
 
     // Handle Internal Apps
-    // We cast to AppId because we know these IDs exist in WindowContext
     const appId = item.id as AppId;
     if (windows[appId]?.isOpen && !windows[appId]?.isMinimized) {
       minimizeApp(appId);
@@ -75,31 +84,38 @@ const Dock = () => {
     }
   };
 
+  const closeAllApps = () => {
+     Object.keys(windows).forEach((key) => {
+        closeApp(key as AppId);
+     });
+  };
+
   return (
     <motion.div
+      onMouseMove={(e) => mouseX.set(e.pageX)}
+      onMouseLeave={() => mouseX.set(Infinity)}
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 20 }}
-      // Position: Centered horizontally, floated 8 units from bottom
-      className="fixed bottom-8 left-0 right-0 mx-auto w-max z-50"
+      className="fixed bottom-6 left-0 right-0 mx-auto w-max z-50 flex flex-col items-center gap-2 pb-2"
     >
-      {/* Dock Container: Dark, pill-shaped, glass effect */}
-      <div className="bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl rounded-full px-4 py-3 flex items-end justify-center gap-3 transition-all duration-300 hover:bg-black/50 hover:scale-105 hover:border-white/20">
-        
+      {/* Dock Container */}
+      <div className="flex items-end h-16 gap-3 px-4 pb-3 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
         {dockApps.map((app) => (
           <DockIcon
             key={app.id}
+            mouseX={mouseX}
             item={app}
-            // Check if it's an open window (only for apps, not links)
             isOpen={!app.isLink && windows[app.id as AppId]?.isOpen}
             onClick={() => handleDockClick(app)}
           />
         ))}
         
         {/* Separator */}
-        <div className="w-px h-8 bg-white/10 self-center mx-1" />
+        <div className="w-px h-10 bg-white/10 mx-1 self-center mb-1" />
         
         <DockIcon
+          mouseX={mouseX}
           item={{
             id: 'trash',
             icon: Trash2,
@@ -107,7 +123,7 @@ const Dock = () => {
             color: 'bg-red-500/80'
           }}
           isOpen={false}
-          onClick={() => {}}
+          onClick={closeAllApps}
         />
       </div>
     </motion.div>
@@ -115,55 +131,92 @@ const Dock = () => {
 };
 
 interface DockIconProps {
+  mouseX: any;
   item: DockItem;
   isOpen: boolean;
   onClick: () => void;
 }
 
-const DockIcon = ({ item, isOpen, onClick }: DockIconProps) => {
+const DockIcon = ({ mouseX, item, isOpen, onClick }: DockIconProps) => {
   const Icon = item.icon;
-  
+  const ref = useRef<HTMLButtonElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isBouncing, setIsBouncing] = useState(false);
+
+  // --- Magnification Math ---
+  const distance = useTransform(mouseX, (val: number) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
+    return val - bounds.x - bounds.width / 2;
+  });
+
+  const widthSync = useTransform(distance, [-150, 0, 150], [48, 90, 48]);
+  const width = useSpring(widthSync, { mass: 0.1, stiffness: 150, damping: 12 });
+
+  const handleClick = () => {
+    onClick();
+    if (!item.isLink) {
+        setIsBouncing(true);
+        setTimeout(() => setIsBouncing(false), 2000);
+    }
+  };
+
   return (
-    <motion.button
-      onClick={onClick}
-      className="relative flex flex-col items-center group"
-      whileHover={{ scale: 1.15, y: -12 }}
-      whileTap={{ scale: 0.9 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-    >
-      {/* Tooltip (Linux Style) */}
+    <div className="relative flex flex-col items-center justify-end group">
+      {/* Tooltip */}
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: -15, scale: 1 }}
+            exit={{ opacity: 0, y: 5, scale: 0.95 }}
+            className="absolute -top-12 px-3 py-1.5 bg-gray-900/90 backdrop-blur border border-white/10 rounded-lg text-xs font-medium text-white shadow-xl whitespace-nowrap pointer-events-none z-50"
+          >
+            {item.label}
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900/90 rotate-45 border-r border-b border-white/10" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bounce Animation Wrapper */}
       <motion.div
-        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-        whileHover={{ opacity: 1, y: -5, scale: 1 }}
-        className="absolute -top-14 px-3 py-1.5 bg-gray-900/90 backdrop-blur border border-white/10 rounded-lg text-xs font-medium text-white shadow-xl whitespace-nowrap pointer-events-none"
+         animate={isBouncing ? { y: [0, -20, 0] } : { y: 0 }}
+         transition={isBouncing ? { repeat: 1, duration: 0.5, ease: "easeInOut" } : {}}
       >
-        {item.label}
-        {/* Tooltip Arrow */}
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900/90 rotate-45 border-r border-b border-white/10" />
+        <motion.button
+          ref={ref}
+          onClick={handleClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={{ width, height: width }}
+          className="relative flex items-center justify-center rounded-2xl focus:outline-none"
+        >
+          {/* Icon Background */}
+          <div
+            className={`w-full h-full ${item.color} rounded-2xl flex items-center justify-center shadow-lg border border-white/10 transition-all overflow-hidden`}
+          >
+             {/* Shine Effect */}
+             {item.isLink && (
+               <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+             )}
+             
+             {/* Icon */}
+             <motion.div style={{ width: useTransform(width, [48, 90], [24, 45]) }}>
+                <Icon className="w-full h-full text-white" />
+             </motion.div>
+          </div>
+        </motion.button>
       </motion.div>
 
-      {/* Icon Container */}
-      <div
-        className={`w-12 h-12 ${item.color} rounded-2xl flex items-center justify-center shadow-lg border border-white/10 group-hover:border-white/30 transition-all relative overflow-hidden`}
-      >
-        {/* Shine effect for links */}
-        {item.isLink && (
-           <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        )}
-        <Icon className="w-6 h-6 text-white relative z-10" />
-      </div>
-
-      {/* Active Indicator (Only for open Apps) */}
-      <div className="absolute -bottom-2.5 w-full flex justify-center">
+      {/* Active Dot Indicator */}
+      <div className="absolute -bottom-2">
         {isOpen && (
           <motion.div
-            layoutId="active-indicator"
-            className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            layoutId={`dot-${item.id}`}
+            className="w-1 h-1 rounded-full bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.8)]"
           />
         )}
       </div>
-    </motion.button>
+    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
-// 1. ADD 'snake' and 'tetris' to AppId
-export type AppId = 'finder' | 'terminal' | 'safari' | 'mail' | 'vscode' | 'snake' | 'tetris';
+// 1. ADD 'contact' to AppId
+export type AppId = 'finder' | 'terminal' | 'safari' | 'mail' | 'vscode' | 'snake' | 'tetris' | 'contact';
 
 export interface WindowState {
   id: AppId;
@@ -41,9 +41,10 @@ export const WindowProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     safari: defaultWindowState('safari', 2),
     mail: defaultWindowState('mail', 3),
     vscode: defaultWindowState('vscode', 4),
-    // 2. INITIALIZE THE NEW APPS
     snake: defaultWindowState('snake', 5),
     tetris: defaultWindowState('tetris', 6),
+    // 2. INITIALIZE contact
+    contact: defaultWindowState('contact', 7),
   });
 
   const getTopZIndex = useCallback(() => {

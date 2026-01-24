@@ -3,7 +3,7 @@ import {
   Wifi, Volume2, VolumeX, Bluetooth, Lock, 
   FileText, Grid, Terminal as TerminalIcon, FolderOpen, Mail,
   CloudSun, Music, Play, Pause, Bell,
-  Github, ExternalLink, BatteryFull, Code, Linkedin, LogOut
+  Github, ExternalLink, BatteryFull, Code, Linkedin, LogOut, WifiOff
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWindows, AppId } from '@/contexts/WindowContext';
@@ -29,14 +29,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 interface TopBarProps {
   isHackerMode: boolean;
   setIsHackerMode: (value: boolean) => void;
+  isWifiOn: boolean;
+  setIsWifiOn: (value: boolean) => void;
 }
 
-const TopBar = ({ isHackerMode, setIsHackerMode }: TopBarProps) => {
+const TopBar = ({ isHackerMode, setIsHackerMode, isWifiOn, setIsWifiOn }: TopBarProps) => {
   const { windows, openApp, closeApp } = useWindows();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [volume, setVolume] = useState([75]);
   const [brightness, setBrightness] = useState([100]);
-  const [isWifiOn, setIsWifiOn] = useState(true);
   const [isBluetoothOn, setIsBluetoothOn] = useState(true);
   
   // Audio Player State
@@ -431,7 +432,7 @@ const TopBar = ({ isHackerMode, setIsHackerMode }: TopBarProps) => {
         <Popover>
           <PopoverTrigger asChild>
             <button className="flex items-center gap-4 px-5 py-1.5 rounded-full hover:bg-white/15 transition-all duration-200 outline-none focus:ring-2 focus:ring-white/20 active:scale-95">
-              <Wifi className="w-5 h-5" />
+              {isWifiOn ? <Wifi className="w-5 h-5" /> : <WifiOff className="w-5 h-5 text-gray-400" />}
               {volume[0] === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
               <BatteryFull className="w-5 h-5" />
             </button>
@@ -442,7 +443,7 @@ const TopBar = ({ isHackerMode, setIsHackerMode }: TopBarProps) => {
               {/* Quick Toggles */}
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setIsWifiOn(!isWifiOn)} className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 border ${isWifiOn ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/20' : 'bg-white/5 hover:bg-white/10 border-white/5'}`}>
-                  <Wifi className="w-6 h-6" />
+                  {isWifiOn ? <Wifi className="w-6 h-6" /> : <WifiOff className="w-6 h-6" />}
                   <div className="text-left">
                     <div className="text-base font-semibold">Wi-Fi</div>
                     <div className="text-xs opacity-80">{isWifiOn ? 'My_Network' : 'Off'}</div>
