@@ -1,31 +1,34 @@
+import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import TopBar from './TopBar';
 import Dock from './Dock';
 import FinderApp from '@/components/apps/FinderApp';
 import TerminalApp from '@/components/apps/TerminalApp';
-import SafariApp from '@/components/apps/SafariApp';
-import MailApp from '@/components/apps/MailApp';
-import VSCodeApp from '@/components/apps/VSCodeApp';
-import wallpaper from '@/assets/hacker-bg.jpeg';
+import SnakeApp from '@/components/apps/SnakeApp';
+import TetrisApp from '@/components/apps/TetrisApp';
+import wallpaperImg from '@/assets/wallpaper.jpg';
+import hackerBgImg from '@/assets/hacker-bg.jpeg';
 
 const Desktop = () => {
+  const [isHackerMode, setIsHackerMode] = useState(false);
+
   return (
     <div
-      className="h-screen w-screen overflow-hidden select-none"
+      className="h-screen w-screen overflow-hidden select-none transition-all duration-700 ease-in-out"
       style={{
-        backgroundImage: `url(${wallpaper})`,
+        backgroundImage: `url(${isHackerMode ? hackerBgImg : wallpaperImg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
-      <TopBar />
+      <TopBar isHackerMode={isHackerMode} setIsHackerMode={setIsHackerMode} />
       
       <AnimatePresence mode="popLayout">
         <FinderApp key="finder" />
         <TerminalApp key="terminal" />
-        <SafariApp key="safari" />
-        <MailApp key="mail" />
-        <VSCodeApp key="vscode" />
+        {/* New Games */}
+        <SnakeApp key="snake" />
+        <TetrisApp key="tetris" />
       </AnimatePresence>
 
       <Dock />

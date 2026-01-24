@@ -1,128 +1,271 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Window from '@/components/desktop/Window';
-import { Files, Search, GitBranch, Bug, Blocks, ChevronRight, ChevronDown } from 'lucide-react';
+import { Trophy, RefreshCcw, Play, Pause, Gamepad2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-const codeSnippet = `// Hello.tsx - Welcome Component
-import { motion } from 'framer-motion';
+// --- Game Constants ---
+const GRID_SIZE = 20;
+const CELL_SIZE = 20; // px
+const SPEED_INITIAL = 150;
+const SPEED_MIN = 80; // Cap speed
 
-interface HelloProps {
-  name: string;
-  role?: string;
-}
+type Point = { x: number; y: number };
+type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
-export const Hello = ({ name, role }: HelloProps) => {
+const GameApp = () => {
+  // Game State
+  const [snake, setSnake] = useState<Point[]>([{ x: 10, y: 10 }]);
+  const [food, setFood] = useState<Point>({ x: 15, y: 15 });
+  const [direction, setDirection] = useState<Direction>('RIGHT');
+  const [gameOver, setGameOver] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
+
+  // Refs for mutable state in interval
+  const directionRef = useRef<Direction>('RIGHT');
+  const speedRef = useRef(SPEED_INITIAL);
+  const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Load High Score
+  useEffect(() => {
+    const saved = localStorage.getItem('snake_highscore');
+    if (saved) setHighScore(parseInt(saved));
+  }, []);
+
+  // --- Game Logic ---
+  const generateFood = useCallback((): Point => {
+    return {
+      x: Math.floor(Math.random() * GRID_SIZE),
+      y: Math.floor(Math.random() * GRID_SIZE),
+    };
+  }, []);
+
+  const resetGame = () => {
+    setSnake([{ x: 10, y: 10 }]);
+    setFood(generateFood());
+    setDirection('RIGHT');
+    directionRef.current = 'RIGHT';
+    setGameOver(false);
+    setScore(0);
+    setIsPaused(false);
+    setGameStarted(true);
+    speedRef.current = SPEED_INITIAL;
+  };
+
+  const moveSnake = useCallback(() => {
+    if (gameOver || isPaused || !gameStarted) return;
+
+    setSnake((prevSnake) => {
+      const head = { ...prevSnake[0] };
+
+      switch (directionRef.current) {
+        case 'UP': head.y -= 1; break;
+        case 'DOWN': head.y += 1; break;
+        case 'LEFT': head.x -= 1; break;
+        case 'RIGHT': head.x += 1; break;
+      }
+
+      // 1. Check Collision with Walls
+      if (
+        head.x < 0 || head.x >= GRID_SIZE || 
+        head.y < 0 || head.y >= GRID_SIZE
+      ) {
+        setGameOver(true);
+        return prevSnake;
+      }
+
+      // 2. Check Collision with Self
+      if (prevSnake.some(segment => segment.x === head.x && segment.y === head.y)) {
+        setGameOver(true);
+        return prevSnake;
+      }
+
+      const newSnake = [head, ...prevSnake];
+
+      // 3. Check Food
+      if (head.x === food.x && head.y === food.y) {
+        setScore(s => {
+          const newScore = s + 10;
+          if (newScore > highScore) {
+            setHighScore(newScore);
+            localStorage.setItem('snake_highscore', newScore.toString());
+          }
+          // Increase speed every 50 points
+          if (newScore % 50 === 0) {
+            speedRef.current = Math.max(SPEED_MIN, speedRef.current - 10);
+          }
+          return newScore;
+        });
+        setFood(generateFood());
+        // Don't pop tail (grow)
+      } else {
+        newSnake.pop(); // Remove tail
+      }
+
+      return newSnake;
+    });
+  }, [food, gameOver, isPaused, gameStarted, highScore, generateFood]);
+
+  // --- Game Loop ---
+  useEffect(() => {
+    if (gameStarted && !gameOver && !isPaused) {
+      gameLoopRef.current = setInterval(moveSnake, speedRef.current);
+    } else {
+      if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+    }
+    return () => {
+      if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+    };
+  }, [moveSnake, gameStarted, gameOver, isPaused]);
+
+  // --- Controls ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+      }
+
+      if (!gameStarted && e.key === 'Enter') {
+        resetGame();
+        return;
+      }
+
+      if (e.key === ' ') {
+        setIsPaused(prev => !prev);
+        return;
+      }
+
+      switch (e.key) {
+        case 'ArrowUp':
+          if (directionRef.current !== 'DOWN') directionRef.current = 'UP';
+          break;
+        case 'ArrowDown':
+          if (directionRef.current !== 'UP') directionRef.current = 'DOWN';
+          break;
+        case 'ArrowLeft':
+          if (directionRef.current !== 'RIGHT') directionRef.current = 'LEFT';
+          break;
+        case 'ArrowRight':
+          if (directionRef.current !== 'LEFT') directionRef.current = 'RIGHT';
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameStarted]);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="greeting-container"
-    >
-      <h1>Hello, I'm {name}! 👋</h1>
-      {role && <p>I'm a {role}</p>}
-      <p>Welcome to my portfolio.</p>
-    </motion.div>
-  );
-};
+    <Window id="vscode" title="Retro Snake" width={600} height={700}>
+      <div className="flex flex-col h-full bg-[#0f0f13] text-white p-6 items-center select-none font-mono">
+        
+        {/* Header / Stats */}
+        <div className="w-full max-w-md flex justify-between items-end mb-6 border-b border-white/10 pb-4">
+          <div>
+            <div className="text-gray-400 text-xs uppercase tracking-widest mb-1">Current Score</div>
+            <div className="text-4xl font-bold text-green-400 font-mono">
+              {score.toString().padStart(3, '0')}
+            </div>
+          </div>
+          <div className="text-right">
+             <div className="flex items-center gap-2 text-gray-400 text-xs uppercase tracking-widest mb-1 justify-end">
+                <Trophy className="w-3 h-3 text-yellow-500" />
+                <span>Best</span>
+             </div>
+            <div className="text-2xl font-bold text-white font-mono">
+              {highScore.toString().padStart(3, '0')}
+            </div>
+          </div>
+        </div>
 
-// Usage
-<Hello 
-  name="Aditya" 
-  role="Android Developer" 
-/>`;
+        {/* Game Board */}
+        <div 
+          className="relative bg-black/50 border-2 border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm"
+          style={{ 
+            width: GRID_SIZE * CELL_SIZE, 
+            height: GRID_SIZE * CELL_SIZE,
+            boxShadow: gameOver ? '0 0 50px rgba(239, 68, 68, 0.2)' : '0 0 50px rgba(74, 222, 128, 0.1)'
+          }}
+        >
+          {/* Grid Background (Optional styling) */}
+          <div className="absolute inset-0 opacity-10" 
+             style={{ backgroundImage: 'radial-gradient(circle, #333 1px, transparent 1px)', backgroundSize: `${CELL_SIZE}px ${CELL_SIZE}px` }} 
+          />
 
-const VSCodeApp = () => {
-  const lineNumbers = codeSnippet.split('\n').map((_, i) => i + 1);
+          {!gameStarted && !gameOver && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10 space-y-4">
+              <Gamepad2 className="w-16 h-16 text-green-500 mb-2 animate-bounce" />
+              <h2 className="text-2xl font-bold">Ready to Play?</h2>
+              <p className="text-gray-400 text-sm">Use Arrow Keys to Move</p>
+              <Button onClick={resetGame} className="bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-8 rounded-full shadow-lg hover:scale-105 transition-transform">
+                 START GAME
+              </Button>
+            </div>
+          )}
 
-  const sidebarItems = [
-    { icon: Files, active: true },
-    { icon: Search },
-    { icon: GitBranch },
-    { icon: Bug },
-    { icon: Blocks },
-  ];
+          {gameOver && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10 animate-in fade-in duration-300">
+              <h2 className="text-4xl font-bold text-red-500 mb-2">GAME OVER</h2>
+              <p className="text-gray-300 mb-6">Score: {score}</p>
+              <Button onClick={resetGame} variant="outline" className="border-white/20 hover:bg-white/10 text-white gap-2">
+                 <RefreshCcw className="w-4 h-4" /> Try Again
+              </Button>
+            </div>
+          )}
 
-  return (
-    <Window id="vscode" title="Visual Studio Code" width={850} height={550}>
-      <div className="flex h-full bg-[#1e1e1e]">
-        {/* Activity Bar */}
-        <div className="w-12 bg-[#333333] flex flex-col items-center py-2 gap-4">
-          {sidebarItems.map((item, i) => (
-            <button
-              key={i}
-              className={`p-2 rounded ${
-                item.active ? 'text-white border-l-2 border-primary' : 'text-[#858585] hover:text-white'
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-            </button>
+          {isPaused && !gameOver && gameStarted && (
+             <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10 backdrop-blur-[2px]">
+                <div className="bg-black/80 px-6 py-3 rounded-lg border border-white/10 text-xl font-bold tracking-widest">PAUSED</div>
+             </div>
+          )}
+
+          {/* Snake */}
+          {snake.map((segment, i) => (
+            <div
+              key={`${segment.x}-${segment.y}`}
+              className="absolute rounded-sm transition-all duration-100"
+              style={{
+                left: segment.x * CELL_SIZE,
+                top: segment.y * CELL_SIZE,
+                width: CELL_SIZE - 2,
+                height: CELL_SIZE - 2,
+                backgroundColor: i === 0 ? '#4ade80' : '#22c55e', // Head is lighter green
+                zIndex: 2,
+                boxShadow: i === 0 ? '0 0 10px #4ade80' : 'none'
+              }}
+            />
           ))}
+
+          {/* Food */}
+          <div
+            className="absolute rounded-full animate-pulse"
+            style={{
+              left: food.x * CELL_SIZE,
+              top: food.y * CELL_SIZE,
+              width: CELL_SIZE - 2,
+              height: CELL_SIZE - 2,
+              backgroundColor: '#ef4444',
+              zIndex: 1,
+              boxShadow: '0 0 15px #ef4444'
+            }}
+          />
         </div>
 
-        {/* Explorer */}
-        <div className="w-48 bg-[#252526] border-r border-[#3c3c3c] text-[13px]">
-          <div className="p-2 text-[#cccccc] text-xs uppercase tracking-wider">Explorer</div>
-          <div className="px-2">
-            <div className="flex items-center gap-1 py-1 text-[#cccccc] cursor-pointer hover:bg-[#2a2d2e] rounded">
-              <ChevronDown className="w-4 h-4" />
-              <span>src</span>
-            </div>
-            <div className="ml-4">
-              <div className="flex items-center gap-1 py-1 text-[#cccccc] cursor-pointer hover:bg-[#2a2d2e] rounded">
-                <ChevronRight className="w-4 h-4" />
-                <span>components</span>
-              </div>
-              <div className="flex items-center gap-1 py-1 text-[#cccccc] cursor-pointer bg-[#094771] rounded pl-4">
-                <span className="text-[#519aba]">Hello.tsx</span>
-              </div>
-              <div className="flex items-center gap-1 py-1 text-[#cccccc] cursor-pointer hover:bg-[#2a2d2e] rounded pl-4">
-                <span className="text-[#519aba]">App.tsx</span>
-              </div>
-            </div>
-          </div>
+        {/* Controls Hint */}
+        <div className="mt-6 flex gap-4 text-xs text-gray-500 font-medium">
+           <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-md border border-white/5">
+              <span className="text-gray-300">Space</span> Pause
+           </div>
+           <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-md border border-white/5">
+              <span className="text-gray-300">Arrows</span> Move
+           </div>
         </div>
 
-        {/* Editor */}
-        <div className="flex-1 flex flex-col">
-          {/* Tabs */}
-          <div className="h-9 bg-[#252526] flex items-center border-b border-[#3c3c3c]">
-            <div className="px-4 py-2 bg-[#1e1e1e] text-[#cccccc] text-sm border-t-2 border-primary flex items-center gap-2">
-              <span className="text-[#519aba]">TS</span>
-              Hello.tsx
-            </div>
-          </div>
-
-          {/* Code Area */}
-          <div className="flex-1 overflow-auto">
-            <div className="flex text-[13px] font-mono leading-[1.5]">
-              {/* Line Numbers */}
-              <div className="w-12 text-right pr-4 pt-2 text-[#858585] select-none bg-[#1e1e1e]">
-                {lineNumbers.map((num) => (
-                  <div key={num}>{num}</div>
-                ))}
-              </div>
-
-              {/* Code */}
-              <pre className="flex-1 pt-2 pl-2 text-[#d4d4d4] overflow-x-auto">
-                <code>{codeSnippet}</code>
-              </pre>
-            </div>
-          </div>
-
-          {/* Status Bar */}
-          <div className="h-6 bg-[#007acc] flex items-center justify-between px-2 text-[11px] text-white">
-            <div className="flex items-center gap-3">
-              <span>main</span>
-              <span>0 Problems</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span>Ln 1, Col 1</span>
-              <span>TypeScript React</span>
-              <span>UTF-8</span>
-            </div>
-          </div>
-        </div>
       </div>
     </Window>
   );
 };
 
-export default VSCodeApp;
+export default GameApp;

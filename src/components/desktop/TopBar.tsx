@@ -26,14 +26,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-const TopBar = () => {
+interface TopBarProps {
+  isHackerMode: boolean;
+  setIsHackerMode: (value: boolean) => void;
+}
+
+const TopBar = ({ isHackerMode, setIsHackerMode }: TopBarProps) => {
   const { windows, openApp, closeApp } = useWindows();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [volume, setVolume] = useState([75]);
   const [brightness, setBrightness] = useState([100]);
   const [isWifiOn, setIsWifiOn] = useState(true);
   const [isBluetoothOn, setIsBluetoothOn] = useState(true);
-  const [isHackerMode, setIsHackerMode] = useState(false);
   
   // Audio Player State
   const [isPlaying, setIsPlaying] = useState(false);
@@ -54,20 +58,10 @@ const TopBar = () => {
     }
   }, [brightness]);
 
-  // --- EFFECT: Handle Hacker Mode with Wallpaper ---
+  // --- EFFECT: Handle Hacker Mode Theme Injection ---
   useEffect(() => {
-    const body = document.body;
-    
     if (isHackerMode) {
       document.documentElement.classList.add('hacker-theme');
-      
-      // Change wallpaper to hacker background
-      const hackerBgPath = '/hacker-bg.jpeg';
-      body.style.backgroundImage = `url('${hackerBgPath}')`;
-      body.style.backgroundSize = 'cover';
-      body.style.backgroundPosition = 'center';
-      body.style.backgroundAttachment = 'fixed';
-      body.style.backgroundColor = '#000000'; // Fallback to black if image doesn't load
       
       // Inject Hacker Styles
       const style = document.createElement('style');
@@ -81,10 +75,10 @@ const TopBar = () => {
         .hacker-theme div, 
         .hacker-theme button, 
         .hacker-theme span, 
-        .hacker-theme p,
-        .hacker-theme h1,
-        .hacker-theme h2,
-        .hacker-theme h3,
+        .hacker-theme p, 
+        .hacker-theme h1, 
+        .hacker-theme h2, 
+        .hacker-theme h3, 
         .hacker-theme h4 {
           color: #00ff00 !important;
           text-shadow: 0 0 5px #00ff00;
@@ -181,7 +175,7 @@ const TopBar = () => {
           z-index: 9999;
         }
         
-        /* Matrix rain effect background */
+        /* Ensure text is readable on black */
         .hacker-theme body {
           background-color: #000000 !important;
         }
@@ -189,11 +183,6 @@ const TopBar = () => {
       document.head.appendChild(style);
     } else {
       document.documentElement.classList.remove('hacker-theme');
-      
-      // Reset to default wallpaper
-      body.style.backgroundImage = '';
-      body.style.backgroundColor = '';
-      
       const style = document.getElementById('hacker-style');
       if (style) style.remove();
     }

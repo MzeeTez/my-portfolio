@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
-export type AppId = 'finder' | 'terminal' | 'safari' | 'mail' | 'vscode';
+// 1. ADD 'snake' and 'tetris' to AppId
+export type AppId = 'finder' | 'terminal' | 'safari' | 'mail' | 'vscode' | 'snake' | 'tetris';
 
 export interface WindowState {
   id: AppId;
@@ -28,7 +29,7 @@ const defaultWindowState = (id: AppId, index: number): WindowState => ({
   isMinimized: false,
   isMaximized: false,
   zIndex: 10 + index,
-  position: { x: 100 + index * 30, y: 80 + index * 30 },
+  position: { x: 50 + index * 30, y: 50 + index * 30 },
 });
 
 const WindowContext = createContext<WindowContextType | undefined>(undefined);
@@ -40,6 +41,9 @@ export const WindowProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     safari: defaultWindowState('safari', 2),
     mail: defaultWindowState('mail', 3),
     vscode: defaultWindowState('vscode', 4),
+    // 2. INITIALIZE THE NEW APPS
+    snake: defaultWindowState('snake', 5),
+    tetris: defaultWindowState('tetris', 6),
   });
 
   const getTopZIndex = useCallback(() => {
