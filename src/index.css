@@ -1,0 +1,183 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=SF+Mono:wght@400;500&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* macOS Portfolio Design System */
+
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 220 15% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+
+    --primary: 220 90% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 92%;
+    --secondary-foreground: 220 15% 25%;
+
+    --muted: 220 15% 95%;
+    --muted-foreground: 220 10% 45%;
+
+    --accent: 280 65% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 220 90% 56%;
+
+    --radius: 0.75rem;
+
+    /* macOS specific tokens */
+    --glass-bg: 0 0% 100% / 70%;
+    --glass-border: 0 0% 100% / 50%;
+    --glass-shadow: 0 8px 32px 0 hsl(220 20% 10% / 0.12);
+    
+    --traffic-red: 0 72% 51%;
+    --traffic-yellow: 45 95% 55%;
+    --traffic-green: 142 72% 42%;
+    
+    --terminal-bg: 220 20% 8%;
+    --terminal-text: 142 72% 55%;
+    
+    --dock-bg: 0 0% 100% / 50%;
+    --dock-border: 0 0% 100% / 60%;
+
+    --window-header: 220 15% 97%;
+    --window-border: 220 15% 85%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 15% 15%;
+    --sidebar-primary: 220 90% 56%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 92%;
+    --sidebar-accent-foreground: 220 15% 25%;
+    --sidebar-border: 220 15% 90%;
+    --sidebar-ring: 220 90% 56%;
+
+    --chart-1: 220 90% 56%;
+    --chart-2: 280 65% 60%;
+    --chart-3: 142 72% 42%;
+    --chart-4: 45 95% 55%;
+    --chart-5: 0 72% 51%;
+
+    --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  }
+
+  .dark {
+    --background: 220 20% 8%;
+    --foreground: 220 15% 95%;
+
+    --card: 220 20% 12%;
+    --card-foreground: 220 15% 95%;
+
+    --popover: 220 20% 12%;
+    --popover-foreground: 220 15% 95%;
+
+    --primary: 220 90% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 220 15% 90%;
+
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 10% 60%;
+
+    --accent: 280 65% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 25%;
+    --input: 220 15% 25%;
+    --ring: 220 90% 60%;
+
+    --glass-bg: 220 20% 12% / 70%;
+    --glass-border: 0 0% 100% / 10%;
+    --glass-shadow: 0 8px 32px 0 hsl(0 0% 0% / 0.3);
+    
+    --dock-bg: 220 20% 15% / 60%;
+    --dock-border: 0 0% 100% / 15%;
+
+    --window-header: 220 20% 15%;
+    --window-border: 220 15% 25%;
+
+    --sidebar-background: 220 20% 10%;
+    --sidebar-foreground: 220 15% 95%;
+    --sidebar-primary: 220 90% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 20%;
+    --sidebar-accent-foreground: 220 15% 90%;
+    --sidebar-border: 220 15% 25%;
+    --sidebar-ring: 220 90% 60%;
+
+    --chart-1: 220 90% 60%;
+    --chart-2: 280 65% 65%;
+    --chart-3: 142 72% 50%;
+    --chart-4: 45 95% 60%;
+    --chart-5: 0 72% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-[hsl(var(--glass-bg))] backdrop-blur-2xl border border-[hsl(var(--glass-border))];
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-dock {
+    @apply bg-[hsl(var(--dock-bg))] backdrop-blur-2xl border border-[hsl(var(--dock-border))];
+    box-shadow: 0 0 0 0.5px hsl(0 0% 0% / 0.1), 0 2px 10px hsl(0 0% 0% / 0.1);
+  }
+
+  .window-shadow {
+    box-shadow: 0 22px 70px 4px hsl(0 0% 0% / 0.2), 0 0 0 0.5px hsl(0 0% 0% / 0.1);
+  }
+
+  .traffic-light {
+    @apply w-3 h-3 rounded-full transition-all duration-150;
+  }
+
+  .traffic-red {
+    @apply bg-[hsl(var(--traffic-red))] hover:brightness-110;
+  }
+
+  .traffic-yellow {
+    @apply bg-[hsl(var(--traffic-yellow))] hover:brightness-110;
+  }
+
+  .traffic-green {
+    @apply bg-[hsl(var(--traffic-green))] hover:brightness-110;
+  }
+
+  .terminal-bg {
+    @apply bg-[hsl(var(--terminal-bg))];
+  }
+
+  .terminal-text {
+    @apply text-[hsl(var(--terminal-text))];
+  }
+}
