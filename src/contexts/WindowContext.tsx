@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
-// 1. ADD 'contact' to AppId
+// Added 'contact' to AppId
 export type AppId = 'finder' | 'terminal' | 'safari' | 'mail' | 'vscode' | 'snake' | 'tetris' | 'contact';
 
 export interface WindowState {
@@ -10,6 +10,7 @@ export interface WindowState {
   isMaximized: boolean;
   zIndex: number;
   position: { x: number; y: number };
+  size: { width: number; height: number }; // Added size property
 }
 
 interface WindowContextType {
@@ -20,6 +21,7 @@ interface WindowContextType {
   maximizeApp: (id: AppId) => void;
   focusApp: (id: AppId) => void;
   updatePosition: (id: AppId, position: { x: number; y: number }) => void;
+  updateSize: (id: AppId, size: { width: number; height: number }) => void; // Added updateSize
   getTopZIndex: () => number;
 }
 
@@ -30,6 +32,7 @@ const defaultWindowState = (id: AppId, index: number): WindowState => ({
   isMaximized: false,
   zIndex: 10 + index,
   position: { x: 50 + index * 30, y: 50 + index * 30 },
+  size: { width: 700, height: 500 }, // Default size
 });
 
 const WindowContext = createContext<WindowContextType | undefined>(undefined);
@@ -43,7 +46,6 @@ export const WindowProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     vscode: defaultWindowState('vscode', 4),
     snake: defaultWindowState('snake', 5),
     tetris: defaultWindowState('tetris', 6),
-    // 2. INITIALIZE contact
     contact: defaultWindowState('contact', 7),
   });
 
@@ -115,6 +117,17 @@ export const WindowProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }));
   }, []);
 
+  // New function to update size
+  const updateSize = useCallback((id: AppId, size: { width: number; height: number }) => {
+    setWindows(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        size,
+      },
+    }));
+  }, []);
+
   return (
     <WindowContext.Provider
       value={{
@@ -125,6 +138,7 @@ export const WindowProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         maximizeApp,
         focusApp,
         updatePosition,
+        updateSize,
         getTopZIndex,
       }}
     >
