@@ -116,10 +116,14 @@ const Window = ({ id, title, children, width = 700, height = 500, className = ''
       animate={{
         scale: 1,
         opacity: 1,
+        // When maximized, take full width
         width: windowState.isMaximized ? '100vw' : windowState.size.width,
+        // When maximized, height is full screen minus top bar (28px)
         height: windowState.isMaximized ? 'calc(100vh - 28px)' : windowState.size.height,
+        // When maximized, x is 0
         x: windowState.isMaximized ? 0 : windowState.position.x,
-        y: windowState.isMaximized ? 0 : windowState.position.y,
+        // When maximized, y is 28 (to sit below the top bar)
+        y: windowState.isMaximized ? 28 : windowState.position.y,
       }}
       exit={{ scale: 0.8, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
@@ -164,14 +168,15 @@ const Window = ({ id, title, children, width = 700, height = 500, className = ''
         onPointerDown={(e) => dragControls.start(e)}
       >
         <div className="flex items-center gap-2">
+          {/* Changed opacity-0 to opacity-50 so icons are visible by default, full opacity on hover */}
           <button onClick={(e) => { e.stopPropagation(); closeApp(id); }} className="traffic-light traffic-red group flex items-center justify-center">
-            <X className="w-2 h-2 text-red-900 opacity-0 group-hover:opacity-100" />
+            <X className="w-2 h-2 text-red-900 opacity-50 group-hover:opacity-100" />
           </button>
           <button onClick={(e) => { e.stopPropagation(); minimizeApp(id); }} className="traffic-light traffic-yellow group flex items-center justify-center">
-            <Minus className="w-2 h-2 text-yellow-900 opacity-0 group-hover:opacity-100" />
+            <Minus className="w-2 h-2 text-yellow-900 opacity-50 group-hover:opacity-100" />
           </button>
           <button onClick={(e) => { e.stopPropagation(); maximizeApp(id); }} className="traffic-light traffic-green group flex items-center justify-center">
-            <Square className="w-1.5 h-1.5 text-green-900 opacity-0 group-hover:opacity-100" />
+            <Square className="w-1.5 h-1.5 text-green-900 opacity-50 group-hover:opacity-100" />
           </button>
         </div>
         <span className="flex-1 text-center text-sm font-medium text-foreground/80 -ml-16">

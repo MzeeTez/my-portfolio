@@ -107,7 +107,15 @@ const TerminalApp = () => {
     const cmd = args[0].toLowerCase();
 
     if (cmd === 'clear') {
-      setHistory([]);
+      // RESET to the 'booted' state instead of empty array
+      setHistory([
+        { type: 'command', content: 'neofetch' },
+        { type: 'output', content: <NeofetchOutput /> },
+        { 
+          type: 'output', 
+          content: <span className="text-gray-500 text-xs">Type <span className="text-yellow-400">'help'</span> to see available commands.</span> 
+        }
+      ]);
     } else {
       const output = commands[cmd] 
         ? commands[cmd](args.slice(1)) 

@@ -3,7 +3,8 @@ import {
   Wifi, Volume2, VolumeX, Bluetooth, Lock, 
   FileText, Grid, Terminal as TerminalIcon, FolderOpen, Mail,
   CloudSun, Music, Play, Pause, Bell,
-  Github, ExternalLink, BatteryFull, Code, Linkedin, LogOut, WifiOff
+  Github, ExternalLink, BatteryFull, Code, Linkedin, LogOut, WifiOff,
+  XCircle // Imported XCircle for the Clear button
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWindows, AppId } from '@/contexts/WindowContext';
@@ -242,6 +243,11 @@ const TopBar = ({ isHackerMode, setIsHackerMode, isWifiOn, setIsWifiOn }: TopBar
     }
   };
 
+  // --- NEW: Close All Function ---
+  const handleClearAll = () => {
+    (Object.keys(windows) as AppId[]).forEach(id => closeApp(id));
+  };
+
   const openResume = () => {
     window.open('/resume.pdf', '_blank');
   };
@@ -253,8 +259,8 @@ const TopBar = ({ isHackerMode, setIsHackerMode, isWifiOn, setIsWifiOn }: TopBar
   return (
     <div className="fixed top-0 left-0 right-0 h-10 bg-black/90 backdrop-blur-md z-50 grid grid-cols-3 items-center px-4 text-sm select-none text-white border-b border-white/10 shadow-sm font-sans transition-all duration-300">
       
-      {/* --- LEFT: Activities --- */}
-      <div className="flex items-center justify-start">
+      {/* --- LEFT: Activities & Clear --- */}
+      <div className="flex items-center justify-start gap-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="px-4 py-1.5 rounded-full hover:bg-white/15 transition-all duration-200 font-medium text-sm tracking-wide outline-none focus:ring-2 focus:ring-white/20 active:scale-95">
@@ -290,6 +296,15 @@ const TopBar = ({ isHackerMode, setIsHackerMode, isWifiOn, setIsWifiOn }: TopBar
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* --- Clear All Apps Button --- */}
+        <button 
+          onClick={handleClearAll}
+          className="p-1.5 rounded-full hover:bg-white/15 transition-all duration-200 text-white/70 hover:text-white outline-none focus:ring-2 focus:ring-white/20 active:scale-95"
+          title="Close All Windows"
+        >
+          <XCircle className="w-4 h-4" />
+        </button>
       </div>
 
       {/* --- CENTER: Date & Time --- */}

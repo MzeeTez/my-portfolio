@@ -67,6 +67,15 @@ const dockApps: DockItem[] = [
 const Dock = () => {
   const { windows, openApp, minimizeApp, closeApp } = useWindows();
   const mouseX = useMotionValue(Infinity);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Check if any window is currently maximized
+  const isAnyMaximized = Object.values(windows).some(w => w.isMaximized);
+
+  // Logic: 
+  // 1. If NO app is maximized -> Always visible (showDock = true)
+  // 2. If app IS maximized -> Only visible on hover
+  const showDock = !isAnyMaximized || isHovered;
 
   const handleDockClick = (item: DockItem) => {
     // Handle External Links
@@ -91,42 +100,49 @@ const Dock = () => {
   };
 
   return (
-    <motion.div
-      onMouseMove={(e) => mouseX.set(e.pageX)}
-      onMouseLeave={() => mouseX.set(Infinity)}
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 20 }}
-      className="fixed bottom-6 left-0 right-0 mx-auto w-max z-50 flex flex-col items-center gap-2 pb-2"
+    // Trigger Area: Sits at bottom, detects hover
+    <div 
+      className="fixed bottom-0 left-0 right-0 h-20 z-[9999] flex items-end justify-center group pointer-events-none"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Dock Container */}
-      <div className="flex items-end h-16 gap-3 px-4 pb-3 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
-        {dockApps.map((app) => (
+      <motion.div
+        onMouseMove={(e) => mouseX.set(e.pageX)}
+        onMouseLeave={() => mouseX.set(Infinity)}
+        // Animate visibility based on state
+        animate={{ y: showDock ? '0%' : '100%' }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        className="w-max flex flex-col items-center gap-2 pb-2 pointer-events-auto"
+      >
+        {/* Dock Container */}
+        <div className="flex items-end h-16 gap-3 px-4 pb-3 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
+          {dockApps.map((app) => (
+            <DockIcon
+              key={app.id}
+              mouseX={mouseX}
+              item={app}
+              isOpen={!app.isLink && windows[app.id as AppId]?.isOpen}
+              onClick={() => handleDockClick(app)}
+            />
+          ))}
+          
+          {/* Separator */}
+          <div className="w-px h-10 bg-white/10 mx-1 self-center mb-1" />
+          
           <DockIcon
-            key={app.id}
             mouseX={mouseX}
-            item={app}
-            isOpen={!app.isLink && windows[app.id as AppId]?.isOpen}
-            onClick={() => handleDockClick(app)}
+            item={{
+              id: 'trash',
+              icon: Trash2,
+              label: 'Trash',
+              color: 'bg-red-500/80'
+            }}
+            isOpen={false}
+            onClick={closeAllApps}
           />
-        ))}
-        
-        {/* Separator */}
-        <div className="w-px h-10 bg-white/10 mx-1 self-center mb-1" />
-        
-        <DockIcon
-          mouseX={mouseX}
-          item={{
-            id: 'trash',
-            icon: Trash2,
-            label: 'Trash',
-            color: 'bg-red-500/80'
-          }}
-          isOpen={false}
-          onClick={closeAllApps}
-        />
-      </div>
-    </motion.div>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
@@ -161,7 +177,7 @@ const DockIcon = ({ mouseX, item, isOpen, onClick }: DockIconProps) => {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-end group">
+    <div className="relative flex flex-col items-center justify-end group/icon">
       {/* Tooltip */}
       <AnimatePresence>
         {isHovered && (
