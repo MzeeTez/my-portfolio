@@ -40,7 +40,13 @@ const WindowContext = createContext<WindowContextType | undefined>(undefined);
 export const WindowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [windows, setWindows] = useState<Record<AppId, WindowState>>({
     finder: defaultWindowState('finder', 0),
-    terminal: defaultWindowState('terminal', 1),
+    // Pre-open terminal on the right side
+    terminal: { 
+      ...defaultWindowState('terminal', 1),
+      isOpen: true,
+      // Attempt to position it on the right side (offset from width)
+      position: { x: typeof window !== 'undefined' ? Math.max(100, window.innerWidth - 800) : 600, y: 50 } 
+    },
     safari: defaultWindowState('safari', 2),
     mail: defaultWindowState('mail', 3),
     vscode: defaultWindowState('vscode', 4),

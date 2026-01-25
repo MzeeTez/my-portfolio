@@ -128,7 +128,10 @@ const Desktop = () => {
         <ContactApp key="contact" />
       </AnimatePresence>
 
-      <Dock />
+      <Dock 
+        isDevMode={isHackerMode} 
+        toggleDevMode={() => setIsHackerMode(!isHackerMode)} 
+      />
     </div>
   );
 };

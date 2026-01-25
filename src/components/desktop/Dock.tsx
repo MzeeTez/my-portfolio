@@ -9,7 +9,8 @@ import {
 import { 
   Folder, Terminal, Globe, Trash2, 
   Github, Linkedin, FileText, 
-  Gamepad2, Grid3X3, ContactRound 
+  Gamepad2, Grid3X3, ContactRound,
+  Zap, ZapOff 
 } from 'lucide-react';
 import { useWindows, AppId } from '@/contexts/WindowContext';
 
@@ -20,6 +21,7 @@ interface DockItem {
   color: string;
   isLink?: boolean;
   url?: string;
+  onClick?: () => void;
 }
 
 const dockApps: DockItem[] = [
@@ -64,7 +66,12 @@ const dockApps: DockItem[] = [
   },
 ];
 
-const Dock = () => {
+interface DockProps {
+  isDevMode: boolean;
+  toggleDevMode: () => void;
+}
+
+const Dock = ({ isDevMode, toggleDevMode }: DockProps) => {
   const { windows, openApp, minimizeApp, closeApp } = useWindows();
   const mouseX = useMotionValue(Infinity);
   const [isHovered, setIsHovered] = useState(false);
@@ -78,6 +85,12 @@ const Dock = () => {
   const showDock = !isAnyMaximized || isHovered;
 
   const handleDockClick = (item: DockItem) => {
+    // Handle Custom Action (e.g., Dev Mode Toggle)
+    if (item.onClick) {
+      item.onClick();
+      return;
+    }
+
     // Handle External Links
     if (item.isLink && item.url) {
       window.open(item.url, '_blank');
@@ -97,6 +110,17 @@ const Dock = () => {
      Object.keys(windows).forEach((key) => {
         closeApp(key as AppId);
      });
+  };
+
+  // --- Dev Mode Item Configuration ---
+  const devModeItem: DockItem = {
+    id: 'devmode',
+    // Switched to Zap (Lightning) for a cooler look
+    icon: isDevMode ? Zap : ZapOff,
+    label: isDevMode ? 'Dev Mode: ON' : 'Dev Mode: OFF',
+    // Amber color for "Energy/Power" look when active
+    color: isDevMode ? 'bg-amber-500/90' : 'bg-slate-700/90',
+    onClick: toggleDevMode
   };
 
   return (
@@ -121,14 +145,15 @@ const Dock = () => {
               key={app.id}
               mouseX={mouseX}
               item={app}
-              isOpen={!app.isLink && windows[app.id as AppId]?.isOpen}
+              isOpen={!app.isLink && !app.onClick && windows[app.id as AppId]?.isOpen}
               onClick={() => handleDockClick(app)}
             />
           ))}
           
-          {/* Separator */}
+          {/* Separator (Kept between apps and system tools) */}
           <div className="w-px h-10 bg-white/10 mx-1 self-center mb-1" />
           
+          {/* Trash */}
           <DockIcon
             mouseX={mouseX}
             item={{
@@ -140,6 +165,15 @@ const Dock = () => {
             isOpen={false}
             onClick={closeAllApps}
           />
+
+          {/* Dev Mode Button (No separator before it) */}
+          <DockIcon 
+             mouseX={mouseX}
+             item={devModeItem}
+             isOpen={isDevMode} // Shows dot when ON
+             onClick={() => handleDockClick(devModeItem)}
+          />
+
         </div>
       </motion.div>
     </div>
