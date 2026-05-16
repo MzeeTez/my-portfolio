@@ -119,8 +119,9 @@ const FinderApp = () => {
               {/* Profile Header */}
               <div className="flex items-start justify-between border-b border-white/10 pb-8">
                  <div className="flex gap-6 items-center">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-2xl font-bold text-white shadow-xl shadow-blue-900/20">
-                       AK
+                    {/* Updated image container and image tag */}
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-xl shadow-blue-900/20">
+                       <img src="/pic.jpg" alt="Profile" className="w-full h-full object-cover" />
                     </div>
                     <div className="space-y-1">
                        <h1 className="text-3xl font-bold text-white tracking-tight">Aditya Kumar Singh</h1>
