@@ -3,7 +3,7 @@ import Window from '@/components/desktop/Window';
 import { 
   Folder, Github, Linkedin, Mail, 
   MapPin, GraduationCap, Briefcase, Code2, 
-  Smartphone, Layers, Zap, Car, Monitor
+  Smartphone, Layers, Zap, Car, Monitor, BrainCircuit
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,32 +20,36 @@ const FinderApp = () => {
 
   const projects = [
     {
+      title: 'Phonetic-Aware Sentiment Analysis',
+      desc: 'Deep Learning for Robust Sentiment Analysis in Code-Mixed Text.',
+      icon: BrainCircuit,
+      tech: ['Deep Learning', 'Python', 'NLP'],
+      color: 'bg-purple-500/20 text-purple-200',
+      link: 'https://github.com/MzeeTez/Phonetic-Aware-Deep-Learning-for-Robust-Sentiment-Analysis-in-Code-Mixed-Text.git'
+    },
+    {
       title: 'Auctora',
       desc: 'Real-time bidding & e-commerce app',
       icon: Smartphone,
       tech: ['Flutter', 'Firebase', 'Dart'],
-      color: 'bg-orange-500/20 text-orange-200'
+      color: 'bg-orange-500/20 text-orange-200',
+      link: 'https://github.com/MzeeTez/Auctora.git'
+    },
+    {
+      title: 'IEM-Ride',
+      desc: 'Carpooling app with OSM integration',
+      icon: Car,
+      tech: ['Android SDK', 'Java', 'Maps'],
+      color: 'bg-blue-500/20 text-blue-200',
+      link: 'https://github.com/MzeeTez/IEM-Ride.git'
     },
     {
       title: 'EVX',
       desc: 'Peer-to-peer EV charging network',
       icon: Zap,
       tech: ['Java', 'XML', 'IoT'],
-      color: 'bg-green-500/20 text-green-200'
-    },
-    {
-      title: 'IEM-Ride',
-      desc: 'Carpooling app with OSM integration',
-      icon: Car,
-      tech: ['Android SDK', 'OpenStreetMaps'],
-      color: 'bg-blue-500/20 text-blue-200'
-    },
-    {
-      title: 'Machine Monitor',
-      desc: 'IoT industrial monitoring system',
-      icon: Monitor,
-      tech: ['Java', 'IoT', 'Graphs'],
-      color: 'bg-gray-500/20 text-gray-200'
+      color: 'bg-green-500/20 text-green-200',
+      link: 'https://github.com/MzeeTez/EVX.git'
     }
   ];
 
@@ -105,7 +109,7 @@ const FinderApp = () => {
                     <Github className="w-4 h-4" onClick={() => window.open('https://github.com/MzeeTez', '_blank')} />
                  </Button>
                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white/10 text-gray-300 hover:text-white">
-                    <Linkedin className="w-4 h-4" onClick={() => window.open('https://linkedin.com', '_blank')} />
+                    <Linkedin className="w-4 h-4" onClick={() => window.open('https://www.linkedin.com/in/aditya-kumar-singh-20061728b/', '_blank')} />
                  </Button>
               </div>
            </div>
@@ -150,12 +154,16 @@ const FinderApp = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                        {projects.map((project, idx) => (
-                          <div key={idx} className="group bg-[#18181b] hover:bg-[#202024] border border-white/10 rounded-xl p-5 transition-all hover:border-white/20 cursor-default shadow-sm">
+                          <div 
+                             key={idx} 
+                             className="group bg-[#18181b] hover:bg-[#202024] border border-white/10 rounded-xl p-5 transition-all hover:border-white/20 cursor-pointer shadow-sm relative"
+                             onClick={() => window.open(project.link, '_blank')}
+                          >
                              <div className="flex items-start justify-between mb-4">
                                 <div className={`p-3 rounded-lg ${project.color}`}>
                                    <project.icon className="w-6 h-6" />
                                 </div>
-                                <Github className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors cursor-pointer" />
+                                <Github className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
                              </div>
                              <h3 className="font-bold text-lg text-white mb-2">{project.title}</h3>
                              <p className="text-sm text-gray-400 mb-4 line-clamp-2 leading-relaxed">{project.desc}</p>
