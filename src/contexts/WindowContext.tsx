@@ -39,7 +39,11 @@ const WindowContext = createContext<WindowContextType | undefined>(undefined);
 
 export const WindowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [windows, setWindows] = useState<Record<AppId, WindowState>>({
-    finder: defaultWindowState('finder', 0),
+    // Pre-open finder
+    finder: {
+      ...defaultWindowState('finder', 0),
+      isOpen: true, 
+    },
     // Pre-open terminal on the right side
     terminal: { 
       ...defaultWindowState('terminal', 1),

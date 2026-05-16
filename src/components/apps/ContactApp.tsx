@@ -1,5 +1,5 @@
 import Window from '@/components/desktop/Window';
-import { Mail, MapPin, Github, Linkedin, ExternalLink, User } from 'lucide-react';
+import { Mail, MapPin, Github, Linkedin, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const ContactApp = () => {
@@ -42,7 +42,8 @@ const ContactApp = () => {
         <div className="flex flex-col items-center mb-8 animate-in slide-in-from-top-4 duration-500">
           <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 p-1 mb-4 shadow-lg">
             <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
-               <User className="w-12 h-12 text-muted-foreground" />
+               {/* Replaced the User icon with the uploaded image */}
+               <img src="/pic.jpg" alt="Profile Picture" className="w-full h-full object-cover" />
             </div>
           </div>
           <h2 className="text-2xl font-bold tracking-tight">Aditya Kumar Singh</h2>
